@@ -5,7 +5,7 @@ import { ErrorMessage } from '../types/ErrorMessage';
 type Props = {
   inputRef: React.MutableRefObject<HTMLInputElement | null>;
   error: ErrorMessage;
-  isToogleAll: boolean;
+  isToogleAll: boolean | null;
   isInputDisablet: boolean;
   isDeletedTodos: number[];
   onAddTodo: (title: string) => Promise<void>;
@@ -36,7 +36,7 @@ export const TodoHeader: React.FC<Props> = props => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (error) {
+    if (error !== ErrorMessage.Default) {
       setErrorMessage(ErrorMessage.Default);
     }
 
@@ -46,18 +46,22 @@ export const TodoHeader: React.FC<Props> = props => {
       return;
     }
 
-    await onAddTodo(title.trim());
-    setTitle('');
+    try {
+      await onAddTodo(title.trim());
+      setTitle('');
+    } catch (err) {}
   };
 
   return (
     <header className="todoapp__header">
-      <button
-        type="button"
-        className={cn('todoapp__toggle-all', { active: isToogleAll })}
-        data-cy="ToggleAllButton"
-        onClick={onToggleAll}
-      />
+      {isToogleAll !== null && (
+        <button
+          type="button"
+          className={cn('todoapp__toggle-all', { active: isToogleAll })}
+          data-cy="ToggleAllButton"
+          onClick={onToggleAll}
+        />
+      )}
 
       <form onSubmit={handleSubmit}>
         <input

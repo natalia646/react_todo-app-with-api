@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { UserWarning } from './UserWarning';
 import * as clientTodo from './api/todos';
 import { getFilteredTodos } from './utils/getFilteredTodos';
@@ -25,11 +25,19 @@ export const App: React.FC = () => {
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const filteredTodos = getFilteredTodos(todos, activeStatus);
-  const notCompletedTodos = todos.filter(todo => !todo.completed);
-  const completedTodos = todos.filter(todo => todo.completed);
-  const isToogleAll =
-    todos.length !== 0 ? completedTodos.length === todos.length : false;
+  const filteredTodos = useMemo(
+    () => getFilteredTodos(todos, activeStatus),
+    [todos, activeStatus],
+  );
+  const notCompletedTodos = useMemo(
+    () => todos.filter(todo => !todo.completed),
+    [todos],
+  );
+  const completedTodos = useMemo(
+    () => todos.filter(todo => todo.completed),
+    [todos],
+  );
+  const isToogleAll = completedTodos.length === todos.length;
 
   const onAddTodo = async (title: string) => {
     setTempTodo({
@@ -73,9 +81,12 @@ export const App: React.FC = () => {
       });
     } catch (error) {
       setErrorMessage(ErrorMessage.UnableToUpdate);
+
       throw error;
     } finally {
-      setIsLoadingTodos(prevTodos => prevTodos.filter(id => todoToUpdate.id !== id));
+      setIsLoadingTodos(prevTodos =>
+        prevTodos.filter(id => todoToUpdate.id !== id),
+      );
     }
   };
 
@@ -106,7 +117,9 @@ export const App: React.FC = () => {
     if (todos.every(todo => todo.completed)) {
       todos.forEach(todo => onUpdateTodo({ ...todo, completed: false }));
     } else {
-      todos.forEach(todo => onUpdateTodo({ ...todo, completed: true }));
+      todos.filter(todo => {
+        if (!todo.completed) onUpdateTodo({ ...todo, completed: true });
+      });
     }
   };
 
@@ -132,7 +145,7 @@ export const App: React.FC = () => {
         <TodoHeader
           inputRef={inputRef}
           error={errorMessage}
-          isToogleAll={isToogleAll}
+          isToogleAll={todos.length === 0 ? null : isToogleAll}
           isInputDisablet={!!tempTodo}
           isDeletedTodos={isLoadingTodos}
           onAddTodo={onAddTodo}

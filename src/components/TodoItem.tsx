@@ -20,12 +20,8 @@ export const TodoItem: React.FC<Props> = props => {
 
   const updateRef = useRef<HTMLInputElement>(null);
 
-  const handleUpdate = async (
-    e:
-      | React.FormEvent<HTMLFormElement>
-      | React.FocusEvent<HTMLInputElement, Element>,
-  ) => {
-    e.preventDefault();
+  const handleUpdate = async () => {
+    const normaliseTitle = updateTitle.trim();
 
     if (todo.title === updateTitle) {
       setIsUpdate(false);
@@ -33,24 +29,52 @@ export const TodoItem: React.FC<Props> = props => {
       return;
     }
 
-    if (!updateTitle) {
+    if (!normaliseTitle) {
       onDeleteTodo(todo.id);
     }
 
     const updatedTodo: Todo = {
       id: todo.id,
       completed: todo.completed,
-      title: updateTitle,
+      title: normaliseTitle,
       userId: USER_ID,
     };
 
     try {
       await onUpdateTodo(updatedTodo);
     } catch (err) {
-      throw err;
+      setIsUpdate(false);
     } finally {
       setIsUpdate(false);
     }
+  };
+
+  const handleEscape = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    if (event.key === 'Escape') {
+      setUpdateTitle(todo.title);
+      setIsUpdate(false);
+    }
+  };
+
+  const handleComplete = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+
+    onUpdateTodo({ ...todo, completed: !todo.completed });
+  };
+
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    handleUpdate();
+  };
+
+  const onBlur = (e: React.FocusEvent<HTMLInputElement, Element>) => {
+    e.preventDefault();
+    if (e.relatedTarget?.tagName === 'INPUT') {
+      return;
+    }
+
+    handleUpdate();
   };
 
   useEffect(() => {
@@ -58,28 +82,6 @@ export const TodoItem: React.FC<Props> = props => {
       updateRef.current.focus();
     }
   }, [isUpdate]);
-
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      event.preventDefault();
-      if (event.key === 'Escape') {
-        setUpdateTitle(todo.title);
-        setIsUpdate(false);
-      }
-    };
-
-    document.addEventListener('keyup', handleEscape);
-
-    return () => {
-      document.removeEventListener('keyup', handleEscape);
-    };
-  }, [todo.title]);
-
-  const handleComplete = (event: React.ChangeEvent<HTMLInputElement>) => {
-    event.preventDefault();
-
-    onUpdateTodo({ ...todo, completed: !todo.completed });
-  };
 
   return (
     <div data-cy="Todo" className={cn('todo', { completed: todo.completed })}>
@@ -94,7 +96,7 @@ export const TodoItem: React.FC<Props> = props => {
       </label>
 
       {isUpdate ? (
-        <form onSubmit={handleUpdate}>
+        <form onSubmit={onSubmit}>
           <input
             data-cy="TodoTitleField"
             type="text"
@@ -103,7 +105,8 @@ export const TodoItem: React.FC<Props> = props => {
             value={updateTitle}
             onChange={e => setUpdateTitle(e.target.value)}
             ref={updateRef}
-            onBlur={handleUpdate}
+            onKeyUp={handleEscape}
+            onBlur={onBlur}
           />
         </form>
       ) : (
