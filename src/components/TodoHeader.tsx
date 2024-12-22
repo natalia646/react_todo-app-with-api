@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import cn from 'classnames';
 import { ErrorMessage } from '../types/ErrorMessage';
 
 type Props = {
-  inputRef: React.MutableRefObject<HTMLInputElement | null>;
+  // inputRef: React.MutableRefObject<HTMLInputElement | null>;
   error: ErrorMessage;
   isToogleAll: boolean | null;
   isInputDisablet: boolean;
@@ -15,7 +15,6 @@ type Props = {
 
 export const TodoHeader: React.FC<Props> = props => {
   const {
-    inputRef,
     error,
     isToogleAll,
     isInputDisablet,
@@ -26,6 +25,7 @@ export const TodoHeader: React.FC<Props> = props => {
   } = props;
 
   const [title, setTitle] = useState('');
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (inputRef.current) {

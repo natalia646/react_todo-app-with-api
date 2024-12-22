@@ -42,10 +42,9 @@ export const TodoItem: React.FC<Props> = props => {
 
     try {
       await onUpdateTodo(updatedTodo);
+      setIsUpdate(false);
     } catch (err) {
-      setIsUpdate(false);
-    } finally {
-      setIsUpdate(false);
+      throw err;
     }
   };
 
