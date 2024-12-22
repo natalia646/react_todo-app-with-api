@@ -3,11 +3,10 @@ import cn from 'classnames';
 import { ErrorMessage } from '../types/ErrorMessage';
 
 type Props = {
-  // inputRef: React.MutableRefObject<HTMLInputElement | null>;
   error: ErrorMessage;
   isToogleAll: boolean | null;
   isInputDisablet: boolean;
-  isDeletedTodos: number[];
+  isDeletedTodos: number;
   onAddTodo: (title: string) => Promise<void>;
   onToggleAll: () => void;
   setErrorMessage: (error: ErrorMessage) => void;

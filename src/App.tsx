@@ -146,7 +146,7 @@ export const App: React.FC = () => {
           error={errorMessage}
           isToogleAll={todos.length === 0 ? null : isToogleAll}
           isInputDisablet={!!tempTodo}
-          isDeletedTodos={isLoadingTodos}
+          isDeletedTodos={todos.length}
           onAddTodo={onAddTodo}
           onToggleAll={onToggleAll}
           setErrorMessage={setErrorMessage}
