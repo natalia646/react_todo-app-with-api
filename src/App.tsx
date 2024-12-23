@@ -37,7 +37,7 @@ export const App: React.FC = () => {
   );
   const isToogleAll = completedTodos.length === todos.length;
 
-  const onAddTodo = async (title: string) => {
+  const onAddTodo = (title: string) => {
     setTempTodo({
       id: 0,
       title,
@@ -61,7 +61,7 @@ export const App: React.FC = () => {
       .finally(() => setTempTodo(null));
   };
 
-  const onUpdateTodo = async (todoToUpdate: Todo) => {
+  const onUpdateTodo = (todoToUpdate: Todo) => {
     setLoadingTodos(prevTodos => [...prevTodos, todoToUpdate.id]);
 
     return clientTodo
@@ -85,27 +85,6 @@ export const App: React.FC = () => {
           prevTodos.filter(id => todoToUpdate.id !== id),
         );
       });
-
-    // try {
-    //   const updatedTodo = await clientTodo.updateTodo(todoToUpdate);
-
-    //   setTodos(currentTodos => {
-    //     const newTodos = [...currentTodos];
-    //     const index = newTodos.findIndex(todo => todo.id === updatedTodo.id);
-
-    //     newTodos.splice(index, 1, updatedTodo);
-
-    //     return newTodos;
-    //   });
-    // } catch (error) {
-    //   setErrorMessage(ErrorMessage.UnableToUpdate);
-
-    //   throw error;
-    // } finally {
-    //   setLoadingTodos(prevTodos =>
-    //     prevTodos.filter(id => todoToUpdate.id !== id),
-    //   );
-    // }
   };
 
   const onDeleteTodo = (todoId: number) => {

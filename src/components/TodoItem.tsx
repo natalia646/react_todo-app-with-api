@@ -20,7 +20,7 @@ export const TodoItem: React.FC<Props> = props => {
 
   const updateRef = useRef<HTMLInputElement>(null);
 
-  const handleUpdate = async () => {
+  const handleUpdate = () => {
     const normaliseTitle = updateTitle.trim();
 
     if (todo.title === updateTitle) {
