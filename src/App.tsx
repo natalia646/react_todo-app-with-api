@@ -18,7 +18,7 @@ export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [activeStatus, setActiveStatus] = useState(Status.All);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-  const [loadingTodos, setLoadingTodos] = useState<number[]>([]);
+  const [loadingTodoIds, setLoadingTodoIds] = useState<number[]>([]);
   const [errorMessage, setErrorMessage] = useState<ErrorMessage>(
     ErrorMessage.Default,
   );
@@ -62,18 +62,15 @@ export const App: React.FC = () => {
   };
 
   const onUpdateTodo = (todoToUpdate: Todo) => {
-    setLoadingTodos(prevTodos => [...prevTodos, todoToUpdate.id]);
+    setLoadingTodoIds(prevTodos => [...prevTodos, todoToUpdate.id]);
 
     return clientTodo
       .updateTodo(todoToUpdate)
       .then(updatedTodo => {
         setTodos(currentTodos => {
-          const newTodos = [...currentTodos];
-          const index = newTodos.findIndex(todo => todo.id === updatedTodo.id);
-
-          newTodos.splice(index, 1, updatedTodo);
-
-          return newTodos;
+          return currentTodos.map(todo =>
+            todo.id === updatedTodo.id ? updatedTodo : todo,
+          );
         });
       })
       .catch(err => {
@@ -81,14 +78,14 @@ export const App: React.FC = () => {
         throw err;
       })
       .finally(() => {
-        setLoadingTodos(prevTodos =>
+        setLoadingTodoIds(prevTodos =>
           prevTodos.filter(id => todoToUpdate.id !== id),
         );
       });
   };
 
   const onDeleteTodo = (todoId: number) => {
-    setLoadingTodos(prevTodos => [...prevTodos, todoId]);
+    setLoadingTodoIds(prevTodos => [...prevTodos, todoId]);
 
     clientTodo
       .deleteTodo(todoId)
@@ -97,12 +94,11 @@ export const App: React.FC = () => {
           currentTodos.filter(todo => todo.id !== todoId),
         ),
       )
-      .catch(error => {
+      .catch(() => {
         setErrorMessage(ErrorMessage.UnableToDelete);
-        throw error;
       })
       .finally(() =>
-        setLoadingTodos(prevTodos => prevTodos.filter(id => todoId !== id)),
+        setLoadingTodoIds(prevTodos => prevTodos.filter(id => todoId !== id)),
       );
   };
 
@@ -126,9 +122,8 @@ export const App: React.FC = () => {
     clientTodo
       .getTodos()
       .then(data => setTodos(data))
-      .catch(error => {
+      .catch(() => {
         setErrorMessage(ErrorMessage.UnableToLoad);
-        throw error;
       });
   }, []);
 
@@ -154,7 +149,7 @@ export const App: React.FC = () => {
         <TodoList
           tempTodo={tempTodo}
           filteredTodos={filteredTodos}
-          loadingTodos={loadingTodos}
+          loadingTodoIds={loadingTodoIds}
           onDeleteTodo={onDeleteTodo}
           onUpdateTodo={onUpdateTodo}
         />

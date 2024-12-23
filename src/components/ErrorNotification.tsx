@@ -20,7 +20,7 @@ export const ErrorNotification: React.FC<Props> = props => {
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [error]);
+  }, [error, setErrorMessage]);
 
   return (
     <div

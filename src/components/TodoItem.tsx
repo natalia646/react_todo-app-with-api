@@ -21,28 +21,26 @@ export const TodoItem: React.FC<Props> = props => {
   const updateRef = useRef<HTMLInputElement>(null);
 
   const handleUpdate = () => {
-    const normaliseTitle = updateTitle.trim();
-
     if (todo.title === updateTitle) {
       setIsUpdate(false);
 
       return;
     }
 
-    if (!normaliseTitle) {
+    if (!updateTitle) {
       onDeleteTodo(todo.id);
+
+      return;
     }
 
     const updatedTodo: Todo = {
       id: todo.id,
       completed: todo.completed,
-      title: normaliseTitle,
+      title: updateTitle.trim(),
       userId: USER_ID,
     };
 
-    onUpdateTodo(updatedTodo)
-      .then(() => setIsUpdate(false))
-      .catch(() => {});
+    onUpdateTodo(updatedTodo).then(() => setIsUpdate(false));
   };
 
   const handleEscape = (event: React.KeyboardEvent<HTMLInputElement>) => {
