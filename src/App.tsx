@@ -11,14 +11,14 @@ import { Status } from './types/Status';
 
 import { TodoHeader } from './components/TodoHeader';
 import { TodoFooter } from './components/TodoFooter';
-import { TodoItem } from './components/TodoItem';
 import { ErrorNotification } from './components/ErrorNotification';
+import { TodoList } from './components/TodoList';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [activeStatus, setActiveStatus] = useState(Status.All);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-  const [isLoadingTodos, setIsLoadingTodos] = useState<number[]>([]);
+  const [loadingTodos, setLoadingTodos] = useState<number[]>([]);
   const [errorMessage, setErrorMessage] = useState<ErrorMessage>(
     ErrorMessage.Default,
   );
@@ -51,45 +51,65 @@ export const App: React.FC = () => {
       completed: false,
     };
 
-    try {
-      const todo = await clientTodo.createTodos(newTodo);
-
-      setTodos(currentTodos => [...currentTodos, todo]);
-    } catch (error) {
-      setErrorMessage(ErrorMessage.UnableToAdd);
-      throw error;
-    } finally {
-      setTempTodo(null);
-    }
+    return clientTodo
+      .createTodos(newTodo)
+      .then(todo => setTodos(currentTodos => [...currentTodos, todo]))
+      .catch(err => {
+        setErrorMessage(ErrorMessage.UnableToAdd);
+        throw err;
+      })
+      .finally(() => setTempTodo(null));
   };
 
   const onUpdateTodo = async (todoToUpdate: Todo) => {
-    setIsLoadingTodos(prevTodos => [...prevTodos, todoToUpdate.id]);
+    setLoadingTodos(prevTodos => [...prevTodos, todoToUpdate.id]);
 
-    try {
-      const updatedTodo = await clientTodo.updateTodo(todoToUpdate);
+    return clientTodo
+      .updateTodo(todoToUpdate)
+      .then(updatedTodo => {
+        setTodos(currentTodos => {
+          const newTodos = [...currentTodos];
+          const index = newTodos.findIndex(todo => todo.id === updatedTodo.id);
 
-      setTodos(currentTodos => {
-        const newTodos = [...currentTodos];
-        const index = newTodos.findIndex(todo => todo.id === updatedTodo.id);
+          newTodos.splice(index, 1, updatedTodo);
 
-        newTodos.splice(index, 1, updatedTodo);
-
-        return newTodos;
+          return newTodos;
+        });
+      })
+      .catch(err => {
+        setErrorMessage(ErrorMessage.UnableToUpdate);
+        throw err;
+      })
+      .finally(() => {
+        setLoadingTodos(prevTodos =>
+          prevTodos.filter(id => todoToUpdate.id !== id),
+        );
       });
-    } catch (error) {
-      setErrorMessage(ErrorMessage.UnableToUpdate);
 
-      throw error;
-    } finally {
-      setIsLoadingTodos(prevTodos =>
-        prevTodos.filter(id => todoToUpdate.id !== id),
-      );
-    }
+    // try {
+    //   const updatedTodo = await clientTodo.updateTodo(todoToUpdate);
+
+    //   setTodos(currentTodos => {
+    //     const newTodos = [...currentTodos];
+    //     const index = newTodos.findIndex(todo => todo.id === updatedTodo.id);
+
+    //     newTodos.splice(index, 1, updatedTodo);
+
+    //     return newTodos;
+    //   });
+    // } catch (error) {
+    //   setErrorMessage(ErrorMessage.UnableToUpdate);
+
+    //   throw error;
+    // } finally {
+    //   setLoadingTodos(prevTodos =>
+    //     prevTodos.filter(id => todoToUpdate.id !== id),
+    //   );
+    // }
   };
 
   const onDeleteTodo = (todoId: number) => {
-    setIsLoadingTodos(prevTodos => [...prevTodos, todoId]);
+    setLoadingTodos(prevTodos => [...prevTodos, todoId]);
 
     clientTodo
       .deleteTodo(todoId)
@@ -103,7 +123,7 @@ export const App: React.FC = () => {
         throw error;
       })
       .finally(() =>
-        setIsLoadingTodos(prevTodos => prevTodos.filter(id => todoId !== id)),
+        setLoadingTodos(prevTodos => prevTodos.filter(id => todoId !== id)),
       );
   };
 
@@ -152,25 +172,13 @@ export const App: React.FC = () => {
           setErrorMessage={setErrorMessage}
         />
 
-        <section className="todoapp__main" data-cy="TodoList">
-          {filteredTodos.map(todo => (
-            <TodoItem
-              key={todo.id}
-              todo={todo}
-              onDeleteTodo={onDeleteTodo}
-              onUpdateTodo={onUpdateTodo}
-              isLoading={isLoadingTodos.includes(todo.id)}
-            />
-          ))}
-          {tempTodo && (
-            <TodoItem
-              todo={tempTodo}
-              onDeleteTodo={onDeleteTodo}
-              onUpdateTodo={onUpdateTodo}
-              isLoading={isLoadingTodos.includes(tempTodo.id)}
-            />
-          )}
-        </section>
+        <TodoList
+          tempTodo={tempTodo}
+          filteredTodos={filteredTodos}
+          loadingTodos={loadingTodos}
+          onDeleteTodo={onDeleteTodo}
+          onUpdateTodo={onUpdateTodo}
+        />
 
         {!!todos.length && (
           <TodoFooter

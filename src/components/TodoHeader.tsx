@@ -45,10 +45,9 @@ export const TodoHeader: React.FC<Props> = props => {
       return;
     }
 
-    try {
-      await onAddTodo(title.trim());
-      setTitle('');
-    } catch (err) {}
+    return onAddTodo(title.trim())
+      .then(() => setTitle(''))
+      .catch(() => {});
   };
 
   return (

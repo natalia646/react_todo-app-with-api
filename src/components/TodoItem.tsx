@@ -7,13 +7,13 @@ import { Todo } from '../types/Todo';
 
 type Props = {
   todo: Todo;
+  isLoading: boolean;
   onDeleteTodo: (todoId: number) => void;
   onUpdateTodo: (newTodo: Todo) => Promise<void>;
-  isLoading: boolean;
 };
 
 export const TodoItem: React.FC<Props> = props => {
-  const { todo, onDeleteTodo, onUpdateTodo, isLoading } = props;
+  const { todo, isLoading, onDeleteTodo, onUpdateTodo } = props;
 
   const [isUpdate, setIsUpdate] = useState(false);
   const [updateTitle, setUpdateTitle] = useState(todo.title);
@@ -40,12 +40,9 @@ export const TodoItem: React.FC<Props> = props => {
       userId: USER_ID,
     };
 
-    try {
-      await onUpdateTodo(updatedTodo);
-      setIsUpdate(false);
-    } catch (err) {
-      throw err;
-    }
+    onUpdateTodo(updatedTodo)
+      .then(() => setIsUpdate(false))
+      .catch(() => {});
   };
 
   const handleEscape = (event: React.KeyboardEvent<HTMLInputElement>) => {
